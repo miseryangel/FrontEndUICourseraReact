@@ -4,6 +4,7 @@ import { Card, CardImg, CardImgOverlay, CardText, CardBody, CardTitle,
     ,Button, Modal, ModalHeader, ModalBody} from 'reactstrap';
 import { Control, LocalForm, Errors } from 'react-redux-form';
 import {Link} from 'react-router-dom';
+import { Loading } from './LoadingComponent';
 
 const required = (val) => val && val.length;
 const maxLength = (len) => (val) => !(val) || (val.length <= len);
@@ -25,13 +26,13 @@ class CommentForm extends Component {
     }
     handleSubmit(values) {
         this.toggleModal();
-        console.log('Current State is: ' + JSON.stringify(values));
-        alert('Current State is: ' + JSON.stringify(values));
+        alert(values.comment);
+        this.props.addComment(this.props.dishId,values.rating,values.author,values.comment);
     }
 
     render(){
         return (
-            <>
+            <React.Fragment>
                 <Button className="btn btn-outline-secondary" onClick={this.toggleModal}>
                     <span className="fa fa-pencil fa-lg"></span>Submit Comment
                 </Button>
@@ -76,10 +77,10 @@ class CommentForm extends Component {
                                     />
                                 </Col>
                             </Row>
-                            <Label htmlFor="message">Comment</Label>
+                            <Label htmlFor="comment">Comment</Label>
                             <Row className="form-group">
                                 <Col md={10}>
-                                    <Control.textarea model=".message" id="message" name="message"
+                                    <Control.textarea model=".comment" id="comment" name="comment"
                                         rows="12"
                                         className="form-control" />
                                 </Col>
@@ -88,7 +89,7 @@ class CommentForm extends Component {
                         </LocalForm>
                     </ModalBody>
                 </Modal>
-            </>
+            </React.Fragment>
         )
     }
 }
@@ -111,7 +112,7 @@ class CommentForm extends Component {
     }
 
 
-    function RenderComments({comments}){
+    function RenderComments({comments,addComment,dishId}){
         if (comments != null){
             const feedback = comments.map((post)=>{
                 return (
@@ -128,7 +129,7 @@ class CommentForm extends Component {
                     <ul className="list-unstyled">
                         {feedback}
                     </ul>
-                    <CommentForm/>
+                    <CommentForm dishId={dishId} addComment={addComment}/>
                 </div>
             );
         }else{
@@ -154,7 +155,25 @@ class CommentForm extends Component {
     }
 
     const DishDetail = (props) => {
-        if (props.dish != null){
+        if (props.isLoading){
+            return (
+                <div className ="container">
+                    <div className="row">
+                        <Loading />
+                    </div>
+                </div>
+            );
+        }
+        else if (props.errMess){
+            return (
+                <div className ="container">
+                    <div className="row">
+                        <h4>{props.errMess}</h4>
+                    </div>
+                </div>
+            );
+        }
+        else if (props.dish != null){
             return (
                 <div className="container">
                     <div className="row">
@@ -169,7 +188,9 @@ class CommentForm extends Component {
                     </div>
                     <div className="row">
                         <RenderDish dish={props.dish}/>
-                        <RenderComments comments={props.comments} />
+                        <RenderComments comments={props.comments} 
+                            addComment={props.addComment}
+                            dishId={props.dish.id}/>
                     </div>
                 </div>
                 
